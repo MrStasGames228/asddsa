@@ -40,7 +40,10 @@ local OBJECTS = {
     ['La Casa Boo'] = { emoji = '👁‍🗨', important = true },
     ['Headless Horseman'] = { emoji = '🐴', important = true },
     ['La Taco Combinasion'] = { emoji = '👒', important = true },
+    ['1x1x1x1'] = { emoji = '🈯️', important = true },
     ['Guest 666'] = { emoji = '㊙️', important = true },
+    ['Cooki and Milki'] = { emoji = '🍪', important = true },
+    ['Los Puggies'] = { emoji = '🦮', important = true },
 }
 
 -- Создаем списки важных объектов
