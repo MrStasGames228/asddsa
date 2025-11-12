@@ -45,6 +45,7 @@ local OBJECTS = {
     ['Los Puggies'] = { emoji = '🦮', important = true },
     ['Fragrama and Chocrama'] = { emoji = '🥥', important = true },
     ['Los Spaghettis'] = { emoji = '🧻', important = true },
+    ['Los Tacoritas'] = { emoji = '🚴', important = true },
 }
 
 -- Создаем списки важных объектов
