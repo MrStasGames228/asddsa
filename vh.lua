@@ -49,6 +49,9 @@ local OBJECTS = {
     ['Orcaledon'] = { emoji = '🐡', important = true },
     ['Capitano Moby'] = { emoji = '🚢', important = true },
     ['Esok Sekolah'] = { emoji = '🏠', important = true },
+    ['Los Bros'] = { emoji = '📱', important = true },
+    ['W or L'] = { emoji = '🪜', important = true },
+    ['Fishino Clownino'] = { emoji = '🤡', important = true },
 }
 
 -- Создаем списки важных объектов
