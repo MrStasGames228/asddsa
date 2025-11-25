@@ -50,6 +50,8 @@ local OBJECTS = {
     ['Capitano Moby'] = { emoji = '🚢', important = true },
     ['Esok Sekolah'] = { emoji = '🏠', important = true },
     ['Los Bros'] = { emoji = '📱', important = true },
+    ['Los Planitos'] = { emoji = '🌍', important = true },
+    ['Lavadorito Spinito'] = { emoji = '📺', important = true },
     ['W or L'] = { emoji = '🪜', important = true },
     ['Fishino Clownino'] = { emoji = '🤡', important = true },
 }
