@@ -13,50 +13,50 @@ local DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/142848245038370414
 
 print('🎯 Brainrot Scanner v2.0 | JobId:', game.JobId)
 
--- 🎮 ОБЪЕКТЫ С ЭМОДЗИ И ВАЖНОСТЬЮ
+-- 🎮 ОБЪЕКТЫ С ЭМОДЗИ И ВАЖНОСТЬЮ (ВСЕ С ⚠️)
 local OBJECTS = {
-    ['Garama and Madundung'] = { emoji = '🍝', important = true },
-    ['Dragon Cannelloni'] = { emoji = '🐲', important = true },
-    ['Nuclearo Dinossauro'] = { emoji = '🦕', important = true },
-    ['Esok Sekolah'] = { emoji = '🏠', important = true, high_priority = true },
-    ['La Supreme Combinasion'] = { emoji = '🔫', important = true },
-    ['Ketupat Kepat'] = { emoji = '🍏', important = true },
-    ['Strawberry Elephant'] = { emoji = '🐘', important = true },
-    ['Spaghetti Tualetti'] = { emoji = '🚽', important = true },
-    ['Ketchuru and Musturu'] = { emoji = '🍾', important = true },
-    ['Tralaledon'] = { emoji = '🦈', important = true },
-    ['La Extinct Grande'] = { emoji = '🩻', important = true, high_priority = true },
-    ['Tictac Sahur'] = { emoji = '🕰️', important = true },
-    ['Los Primos'] = { emoji = '🙆‍♂️', important = true },
-    ['Tang Tang Keletang'] = { emoji = '📢', important = true },
-    ['Money Money Puggy'] = { emoji = '🐶', important = true }, 
-    ['Burguro And Fryuro'] = { emoji = '🍔', important = true },
-    ['Chillin Chili'] = { emoji = '🌶', important = true, high_priority = true },
-    ['La Secret Combinasion'] = { emoji = '❓', important = true },
-    ['Eviledon'] = { emoji = '👹', important = true },
-    ['Spooky and Pumpky'] = { emoji = '🎃', important = true, },
-    ['La Spooky Grande'] = { emoji = '👻', important = true, high_priority = true },
-    ['Meowl'] = { emoji = '🐈', important = true },
-    ['La Casa Boo'] = { emoji = '👁‍🗨', important = true },
-    ['Headless Horseman'] = { emoji = '🐴', important = true },
-    ['La Taco Combinasion'] = { emoji = '👒', important = true },
-    ['Guest 666'] = { emoji = '㊙️', important = true },
-    ['Cooki and Milki'] = { emoji = '🍪', important = true },
-    ['Los Puggies'] = { emoji = '🦮', important = true },
-    ['Fragrama and Chocrama'] = { emoji = '🥥', important = true },
-    ['Los Spaghettis'] = { emoji = '🧻', important = true },
-    ['Los Tacoritas'] = { emoji = '🚴', important = true },
-    ['Orcaledon'] = { emoji = '🐡', important = true },
-    ['Capitano Moby'] = { emoji = '🚢', important = true },
-    ['Esok Sekolah'] = { emoji = '🏠', important = true },
-    ['Los Bros'] = { emoji = '📱', important = true },
-    ['Los Planitos'] = { emoji = ''🌍, important = true },
-    ['Lavadorito Spinito'] = { emoji = '📺', important = true },
-    ['W or L'] = { emoji = '🪜', important = true },
-    ['Fishino Clownino'] = { emoji = '🤡', important = true },
-    ['Celularcini Viciosini'] = { emoji = '📱', important = true },
-    ['La Ginger Sekolah'] = { emoji = '🎄', important = true },
-    ['Tung Tung Tung Sahur Returns'] = { emoji = '⚰️', important = true },
+    ['Garama and Madundung'] = { emoji = '⚠️', important = true },
+    ['Dragon Cannelloni'] = { emoji = '⚠️', important = true },
+    ['Nuclearo Dinossauro'] = { emoji = '⚠️', important = true },
+    ['Esok Sekolah'] = { emoji = '⚠️', important = true, high_priority = true },
+    ['La Supreme Combinasion'] = { emoji = '⚠️', important = true },
+    ['Ketupat Kepat'] = { emoji = '⚠️', important = true },
+    ['Strawberry Elephant'] = { emoji = '⚠️', important = true },
+    ['Spaghetti Tualetti'] = { emoji = '⚠️', important = true },
+    ['Ketchuru and Musturu'] = { emoji = '⚠️', important = true },
+    ['Tralaledon'] = { emoji = '⚠️', important = true },
+    ['La Extinct Grande'] = { emoji = '⚠️', important = true, high_priority = true },
+    ['Tictac Sahur'] = { emoji = '⚠️', important = true },
+    ['Los Primos'] = { emoji = '⚠️', important = true },
+    ['Tang Tang Keletang'] = { emoji = '⚠️', important = true },
+    ['Money Money Puggy'] = { emoji = '⚠️', important = true }, 
+    ['Burguro And Fryuro'] = { emoji = '⚠️', important = true },
+    ['Chillin Chili'] = { emoji = '⚠️', important = true, high_priority = true },
+    ['La Secret Combinasion'] = { emoji = '⚠️', important = true },
+    ['Eviledon'] = { emoji = '⚠️', important = true },
+    ['Spooky and Pumpky'] = { emoji = '⚠️', important = true },
+    ['La Spooky Grande'] = { emoji = '⚠️', important = true, high_priority = true },
+    ['Meowl'] = { emoji = '⚠️', important = true },
+    ['La Casa Boo'] = { emoji = '⚠️', important = true },
+    ['Headless Horseman'] = { emoji = '⚠️', important = true },
+    ['La Taco Combinasion'] = { emoji = '⚠️', important = true },
+    ['Guest 666'] = { emoji = '⚠️', important = true },
+    ['Cooki and Milki'] = { emoji = '⚠️', important = true },
+    ['Los Puggies'] = { emoji = '⚠️', important = true },
+    ['Fragrama and Chocrama'] = { emoji = '⚠️', important = true },
+    ['Los Spaghettis'] = { emoji = '⚠️', important = true },
+    ['Los Tacoritas'] = { emoji = '⚠️', important = true },
+    ['Orcaledon'] = { emoji = '⚠️', important = true },
+    ['Capitano Moby'] = { emoji = '⚠️', important = true },
+    ['Esok Sekolah'] = { emoji = '⚠️', important = true },
+    ['Los Bros'] = { emoji = '⚠️', important = true },
+    ['Los Planitos'] = { emoji = '⚠️', important = true },
+    ['Lavadorito Spinito'] = { emoji = '⚠️', important = true },
+    ['W or L'] = { emoji = '⚠️', important = true },
+    ['Fishino Clownino'] = { emoji = '⚠️', important = true },
+    ['Celularcini Viciosini'] = { emoji = '⚠️', important = true },
+    ['La Ginger Sekolah'] = { emoji = '⚠️', important = true },
+    ['Tung Tung Tung Sahur Returns'] = { emoji = '⚠️', important = true },
 }
 
 -- Создаем списки важных объектов
@@ -415,18 +415,16 @@ local function sendDiscordNotification(filteredObjects)
         table.insert(sorted, obj)
     end
 
-    -- Формируем красивый список (максимум 10)
+    -- Формируем красивый список (максимум 10) - ВСЕ С ⚠️
     local objectsList = {}
     for i = 1, math.min(10, #sorted) do
         local obj = sorted[i]
-        local emoji = OBJECTS[obj.name].emoji or '💰'
         local mark = HIGH_PRIORITY_OBJECTS[obj.name] and '🔥 ' or (ALWAYS_IMPORTANT[obj.name] and '⭐ ' or '')
         table.insert(
             objectsList,
             string.format(
-                '%s%s **%s** (%s)',
+                '%s⚠️ **%s** (%s)',
                 mark,
-                emoji,
                 obj.name,
                 formatIncomeNumber(obj.gen)
             )
@@ -446,10 +444,10 @@ local function sendDiscordNotification(filteredObjects)
         embeds = {
             {
                 title = '⚠️ Найдены ценные объекты в Steal a brainrot!',
-                color = 0x2f3136,
+                color = 0xFF9900, -- Оранжевый цвет для предупреждения
                 fields = {
                     {
-                        name = '⚠️ Сервер (Job ID)',
+                        name = '🆔 Сервер (Job ID)',
                         value = string.format('```%s```', jobId),
                         inline = false,
                     },
@@ -525,13 +523,11 @@ local function scanAndNotify()
     print('Показано важных:', #filtered)
 
     for _, obj in ipairs(filtered) do
-        local emoji = OBJECTS[obj.name].emoji or '💰'
         local mark = HIGH_PRIORITY_OBJECTS[obj.name] and '🔥 ' or (ALWAYS_IMPORTANT[obj.name] and '⭐ ' or '')
         print(
             string.format(
-                '%s%s %s: %s (%s)',
+                '%s⚠️ %s: %s (%s)',
                 mark,
-                emoji,
                 obj.name,
                 formatIncomeNumber(obj.gen),
                 obj.location or 'Unknown'
@@ -551,6 +547,7 @@ end
 print('🎯 === BRAINROT INCOME SCANNER ЗАПУЩЕН ===')
 print('🔥 Особо важные объекты (≥500M/s): Spaghetti Tualetti, Esok Sekolah, La Extinct Grande, Tang Tang Keletang, Money Money Puggy, Chillin Chili')
 print('⭐ Обычные важные объекты (≥50M/s): все остальные')
+print('⚠️ ВСЕ объекты будут отображаться с эмодзи "⚠️"')
 scanAndNotify()
 
 -- ⌨️ ПОВТОР ПО КЛАВИШЕ F
