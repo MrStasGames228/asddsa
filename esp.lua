@@ -496,22 +496,22 @@ local ICONS = {
     Camera = "rbxassetid://7733871300",
     Jump = "rbxassetid://7733708835"
 }
-local ESP_SETTINGS = { 
-    MaxDistance = 500, 
-    Font = Enum.Font.GothamBold, 
-    Color = Color3.fromRGB(148, 0, 211),
-    BgColor = Color3.fromRGB(24, 16, 40), 
-    TxtColor = Color3.fromRGB(225, 210, 255), 
-    TextSize = 16 
+local ESP_SETTINGS = { MaxDistance = 500, Font = Enum.Font.GothamBold, Color = Color3.fromRGB(148, 0, 211),
+    BgColor = Color3.fromRGB(24, 16, 40), TxtColor = Color3.fromRGB(225, 210, 255), TextSize = 16 }
+local OBJECT_EMOJIS = {['La Vacca Saturno Saturita'] = '🐮', ['Nooo My Hotspot'] = '👽', ['La Supreme Combinasion'] = '🔫',['La Taco Combinasion'] = '👒',['Mariachi Corazoni'] = '💀',['Tacorita Bicicleta'] = '🚵‍♂️',['1x1x1x1'] = '🈯️',['Cooki and Milki'] = '🍪',['Los Puggies'] = '🦮',['La Ginger Sekolah'] = '🎄',
+    ['Ketupat Kepat'] = '⚰️',['Graipuss Medussi'] = '🦑',['Torrtuginni Dragonfrutini'] = '🐢',['Tictac Sahur'] = '🕰',["Tang Tang Keletang"] = "📢",["Money Money Puggy"] = "🐶",["Los Primos"] = "🙆‍♂️",['Los Tacoritas'] = '🚴',['Guest 666'] = '㊙️',['Fragrama and Chocrama'] = '🍫',['Christmas Chicleteira'] = '🛷',
+    ['Pot Hotspot'] = ' 📱',['La Grande Combinasion'] = '❗️',['Garama and Madundung'] = '🥫',['La Spooky Grande'] = '🟧',['Spooky and Pumpky'] = '🎃',['La Casa Boo'] = '👁‍🗨',["Burrito Bandito"] = "👮‍♀️",["Capitano Moby"] = "🚢",['Los Spaghettis'] = '🚾',['Los Planitos'] = '🪐',['La Jolly Grande'] = '☃️',
+    ['Secret Lucky Block'] = '⬛️',['Strawberry Elephant'] = '🐘',['Nuclearo Dinossauro'] = '🦕',['Spaghetti Tualetti'] = '🚽',['Meowl'] = '🐈',['Mieteteira Bicicleteira'] = '☠️',['Headless Horseman'] = '🐴',['W or L'] = '🟩',['Fishino Clownino'] = '🤡',['Orcaledon'] = '🐳',['Ginger'] = '🧸',
+    ['Chicleteira Bicicleteira'] = '🚲',['Los Combinasionas'] = '⚒️',['Ketchuru and Musturu'] = '🍾',['Los Hotspotsitos'] = '☎️',['Tacorita Bicicleta'] = '🌮',["Chillin Chili"] = "🌶",["Eviledon"] = "👹",['Lavadorito Spinito'] = '📺',['W or L'] = '🟩',['Gobblino Uniciclino'] = '🕊',['Celularcini Viciosini'] = '📱',
+    ['Los Nooo My Hotspotsitos'] = '🔔',['Esok Sekolah'] = '🏠',['Los Bros'] = '✊',["Tralaledon"] = "🦈",["La Extinct Grande"] = "🦴",["Las Sis"] = "👧",["Los Chicleteiras"] = "🚳",["Celularcini Viciosini"] = "📢",["Dragon Cannelloni"] = "🐉",["La Secret Combinasion"] = "❓",["Burguro And Fryuro"] = "🍔"
 }
 
--- == ОПТИМАЛЬНЫЙ ESP (ТОЛЬКО ДЛЯ ОБЪЕКТОВ С m/s ИЛИ b/s) ==
+-- == ОПТИМАЛЬНЫЙ ESP ==
 local espCache, esp3DRoot, heartbeatConnection = {}, nil, nil
 local camera = workspace.CurrentCamera
 local ESP_UPDATE_INTERVAL = 0.25
-local MAX_ESP_TARGETS = 30
+local MAX_ESP_TARGETS = 24
 local lastESPUpdate = 0
-
 local function getRootPart(obj)
     if obj:IsA("BasePart") then return obj end
     if obj:IsA("Model") then
@@ -519,150 +519,68 @@ local function getRootPart(obj)
     end
     return nil
 end
-
--- == ФУНКЦИЯ ПРОВЕРКИ НАЛИЧИЯ ТЕКСТА m/s ИЛИ b/s ==
-local function hasSpeedText(obj)
-    -- Ищем TextLabel или TextButton с текстом, содержащим m/s или b/s
-    for _, descendant in ipairs(obj:GetDescendants()) do
-        if descendant:IsA("TextLabel") or descendant:IsA("TextButton") then
-            local text = descendant.Text
-            if text and (text:lower():find("m/s") or text:lower():find("b/s")) then
-                return true, text
-            end
-        end
-    end
-    return false, nil
-end
-
 local function isValidTarget(obj)
-    -- Проверяем наличие текста m/s или b/s
-    local hasSpeed, speedText = hasSpeedText(obj)
-    return hasSpeed and ((obj:IsA('BasePart')) or (obj:IsA('Model') and getRootPart(obj)))
+    return OBJECT_EMOJIS[obj.Name] and ((obj:IsA('BasePart')) or (obj:IsA('Model') and getRootPart(obj)))
 end
-
 local function clearOldESP()
     for obj,data in pairs(espCache) do
-        if not obj or not obj.Parent then 
-            if data and data.gui then 
-                data.gui:Destroy() 
-            end
-            espCache[obj]=nil 
-        end
+        if not obj or not obj.Parent then if data and data.gui then data.gui:Destroy() end; espCache[obj]=nil end
     end
 end
-
 local function createESP(obj)
-    local rootPart = getRootPart(obj) 
-    if not rootPart then return nil end
-    
-    local hasSpeed, speedText = hasSpeedText(obj)
-    if not hasSpeed then return nil end
-    
+    local rootPart = getRootPart(obj) if not rootPart then return nil end
     local gui = Instance.new('BillboardGui')
-    gui.Adornee = rootPart 
-    gui.Size = UDim2.new(0, 250, 0, 35) 
-    gui.AlwaysOnTop = true
-    gui.MaxDistance = ESP_SETTINGS.MaxDistance 
-    gui.LightInfluence = 0 
-    gui.StudsOffset = Vector3.new(0, 3.5, 0)
+    gui.Adornee = rootPart gui.Size = UDim2.new(0,220,0,30) gui.AlwaysOnTop = true
+    gui.MaxDistance = ESP_SETTINGS.MaxDistance gui.LightInfluence = 0 gui.StudsOffset = Vector3.new(0,3,0)
     gui.Parent = esp3DRoot
-    
-    local frame = Instance.new('Frame', gui)
-    frame.Size = UDim2.new(1, 0, 1, 0)
-    frame.BackgroundColor3 = ESP_SETTINGS.BgColor
-    frame.BackgroundTransparency = 0.15
-    frame.BorderSizePixel = 0
-    
-    Instance.new('UICorner', frame).CornerRadius = UDim.new(0, 8)
-    
+    local frame = Instance.new('Frame', gui); frame.Size = UDim2.new(1,0,1,0)
+    frame.BackgroundColor3 = ESP_SETTINGS.BgColor; frame.BackgroundTransparency = 0.2; frame.BorderSizePixel = 0
+    Instance.new('UICorner', frame).CornerRadius = UDim.new(0,8)
     local border = Instance.new('UIStroke', frame)
-    border.Color = ESP_SETTINGS.Color
-    border.Thickness = 2
-    
+    border.Color = ESP_SETTINGS.Color; border.Thickness = 1.5
     local textLabel = Instance.new('TextLabel', frame)
-    textLabel.Size = UDim2.new(1, -8, 1, -4)
-    textLabel.Position = UDim2.new(0, 4, 0, 2)
-    textLabel.BackgroundTransparency = 1
-    textLabel.TextColor3 = ESP_SETTINGS.TxtColor
-    textLabel.Font = Enum.Font.GothamBold
-    textLabel.TextSize = 14
-    textLabel.TextXAlignment = Enum.TextXAlignment.Center
-    textLabel.TextYAlignment = Enum.TextYAlignment.Center
-    
-    -- Форматируем текст: название объекта + скорость
-    local objectName = obj.Name
-    textLabel.Text = objectName .. "\n" .. speedText:gsub("\n", " ")
-    textLabel.TextScaled = false
-    textLabel.TextWrapped = true
-    textLabel.ClipsDescendants = true
-    
-    return {gui = gui, rootPart = rootPart, speedText = speedText}
+    textLabel.Size = UDim2.new(1, -8, 1, -4); textLabel.Position = UDim2.new(0,4,0,2)
+    textLabel.BackgroundTransparency = 1; textLabel.TextColor3 = ESP_SETTINGS.TxtColor; textLabel.Font = Enum.Font.GothamBold
+    textLabel.TextSize = 16; textLabel.TextXAlignment = Enum.TextXAlignment.Center
+    textLabel.TextYAlignment = Enum.TextYAlignment.Center; textLabel.Text = OBJECT_EMOJIS[obj.Name].." "..obj.Name
+    textLabel.TextScaled = true; textLabel.ClipsDescendants = true
+    return {gui=gui, rootPart=rootPart}
 end
-
 local function updateESP()
     if tick() - lastESPUpdate < ESP_UPDATE_INTERVAL then return end
     lastESPUpdate = tick()
-    
     clearOldESP()
-    
     local candidates = {}
     for _, obj in ipairs(workspace:GetDescendants()) do
         if isValidTarget(obj) then
             local root = getRootPart(obj)
             if root then
-                local distance = (root.Position - camera.CFrame.Position).Magnitude
-                table.insert(candidates, {obj = obj, dist = distance})
+                table.insert(candidates, {obj=obj,dist=(root.Position-camera.CFrame.Position).Magnitude})
             end
         end
     end
-    
-    -- Сортируем по расстоянию
-    table.sort(candidates, function(a, b) return a.dist < b.dist end)
-    
-    -- Создаем ESP для ближайших объектов
-    for i, data in ipairs(candidates) do
+    table.sort(candidates, function(a,b) return a.dist<b.dist end)
+    for i,data in ipairs(candidates) do
         if i > MAX_ESP_TARGETS then break end
-        
         local obj = data.obj
         local root = getRootPart(obj)
-        
         if not espCache[obj] then
-            local espData = createESP(obj)
-            if espData then 
-                espCache[obj] = espData 
-            end
+            local d = createESP(obj)
+            if d then espCache[obj] = d end
         end
-        
-        local espData = espCache[obj]
-        if espData then
+        local dat = espCache[obj]
+        if dat then
             local _, onScreen = camera:WorldToViewportPoint(root.Position)
-            espData.gui.Enabled = onScreen and (data.dist <= ESP_SETTINGS.MaxDistance)
-            
-            -- Обновляем текст, если скорость изменилась
-            local hasSpeed, currentSpeedText = hasSpeedText(obj)
-            if hasSpeed and currentSpeedText ~= espData.speedText then
-                espData.speedText = currentSpeedText
-                local objectName = obj.Name
-                espData.gui:FindFirstChildWhichIsA("TextLabel").Text = objectName .. "\n" .. currentSpeedText:gsub("\n", " ")
-            end
+            dat.gui.Enabled = onScreen and (data.dist <= ESP_SETTINGS.MaxDistance)
         end
     end
 end
-
 local function startESP()
-    if not heartbeatConnection then 
-        heartbeatConnection = RunService.Heartbeat:Connect(updateESP) 
-        print("✅ ESP включен - показывает объекты с m/s или b/s")
-    end
+    if not heartbeatConnection then heartbeatConnection = RunService.Heartbeat:Connect(updateESP) end
 end
-
 local function stopESP()
-    if heartbeatConnection then 
-        heartbeatConnection:Disconnect() 
-        heartbeatConnection = nil 
-    end
+    if heartbeatConnection then heartbeatConnection:Disconnect() heartbeatConnection = nil end
     clearOldESP()
-    print("❌ ESP выключен")
 end
 
 -- == CAMERAUP ==
@@ -1380,8 +1298,7 @@ print("✅ INFINITY JUMP: всегда включен, быстрое паден
 print("   - Зажимайте ПРОБЕЛ для прыжка вверх (скорость 32)")
 print("   - Отпускайте ПРОБЕЛ для БЫСТРОГО падения (скорость -80)")
 print("   - ВСЕ АНИМАЦИИ ПОЛНОСТЬЮ ОТКЛЮЧЕНЫ!")
-print("✅ ESP: показывает ТОЛЬКО объекты с m/s или b/s в тексте")
-print("✅ Camera, Freeze, Troll - всё работает")
+print("✅ ESP, Camera, Freeze, Troll - всё работает")
 print("✅ Телепорт по JobID: клавиша T")
 print("✅ Быстрый выбор инструментов: Z/X")
 print("✅ GUI теперь можно перетаскивать!")
