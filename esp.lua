@@ -519,9 +519,40 @@ local function getRootPart(obj)
     end
     return nil
 end
-local function isValidTarget(obj)
-    return OBJECT_EMOJIS[obj.Name] and ((obj:IsA('BasePart')) or (obj:IsA('Model') and getRootPart(obj)))
+
+-- == НОВЫЙ БЛОК: ПРОВЕРКА ДОХОДА В СЕКУНДУ ==
+local function hasIncomePerSecond(obj)
+    -- Ищем TextLabel или TextButton с текстом дохода в секунду
+    for _, descendant in ipairs(obj:GetDescendants()) do
+        if descendant:IsA("TextLabel") or descendant:IsA("TextButton") then
+            local text = descendant.Text
+            if text then
+                -- Ищем паттерн "число + /s" или "число + m/s" или "число + b/s"
+                if text:match("%d+%.?%d*%s*/s") or  -- 10/s, 52.5/s
+                   text:match("%d+%.?%d*%s*m/s") or -- 10 m/s, 52.5m/s
+                   text:match("%d+%.?%d*%s*b/s") or -- 10 b/s, 52.5b/s
+                   text:match("%$?%d+%.?%d*[kKmMbBtT]?%s*/s") or -- $10/s, 10K/s, 52.5M/s
+                   text:match("%$?%d+%.?%d*[kKmMbBtT]?%s*m/s") or -- $10 m/s, 10K m/s, 52.5M/s
+                   text:match("%$?%d+%.?%d*[kKmMbBtT]?%s*b/s") then -- $10 b/s, 10K b/s, 52.5B/s
+                    return true
+                end
+            end
+        end
+    end
+    return false
 end
+
+local function isValidTarget(obj)
+    -- Проверяем 1: объект в списке OBJECT_EMOJIS
+    local inList = OBJECT_EMOJIS[obj.Name] ~= nil
+    
+    -- Проверяем 2: наличие дохода в секунду
+    local hasIncome = hasIncomePerSecond(obj)
+    
+    -- ОБА условия должны быть true
+    return inList and hasIncome and ((obj:IsA('BasePart')) or (obj:IsA('Model') and getRootPart(obj)))
+end
+
 local function clearOldESP()
     for obj,data in pairs(espCache) do
         if not obj or not obj.Parent then if data and data.gui then data.gui:Destroy() end; espCache[obj]=nil end
@@ -1298,7 +1329,8 @@ print("✅ INFINITY JUMP: всегда включен, быстрое паден
 print("   - Зажимайте ПРОБЕЛ для прыжка вверх (скорость 32)")
 print("   - Отпускайте ПРОБЕЛ для БЫСТРОГО падения (скорость -80)")
 print("   - ВСЕ АНИМАЦИИ ПОЛНОСТЬЮ ОТКЛЮЧЕНЫ!")
-print("✅ ESP, Camera, Freeze, Troll - всё работает")
+print("✅ ESP: проверяет название объекта и доход в секунду")
+print("✅ Camera, Freeze, Troll - всё работает")
 print("✅ Телепорт по JobID: клавиша T")
 print("✅ Быстрый выбор инструментов: Z/X")
 print("✅ GUI теперь можно перетаскивать!")
