@@ -503,7 +503,8 @@ local OBJECT_EMOJIS = {['La Vacca Saturno Saturita'] = '🐮', ['Nooo My Hotspot
     ['Pot Hotspot'] = ' 📱',['La Grande Combinasion'] = '❗️',['Garama and Madundung'] = '🥫',['La Spooky Grande'] = '🟧',['Spooky and Pumpky'] = '🎃',['La Casa Boo'] = '👁‍🗨',["Burrito Bandito"] = "👮‍♀️",["Capitano Moby"] = "🚢",['Los Spaghettis'] = '🚾',['Los Planitos'] = '🪐',['La Jolly Grande'] = '☃️',
     ['Secret Lucky Block'] = '⬛️',['Strawberry Elephant'] = '🐘',['Nuclearo Dinossauro'] = '🦕',['Spaghetti Tualetti'] = '🚽',['Meowl'] = '🐈',['Mieteteira Bicicleteira'] = '☠️',['Headless Horseman'] = '🐴',['W or L'] = '🟩',['Fishino Clownino'] = '🤡',['Orcaledon'] = '🐳',['Ginger'] = '🧸',['Los Mobilis'] = '🧕',
     ['Chicleteira Bicicleteira'] = '🚲',['Los Combinasionas'] = '⚒️',['Ketchuru and Musturu'] = '🍾',['Los Hotspotsitos'] = '☎️',['Tacorita Bicicleta'] = '🌮',["Chillin Chili"] = "🌶",["Eviledon"] = "👹",['Lavadorito Spinito'] = '📺',['W or L'] = '🟩',['Gobblino Uniciclino'] = '🕊',['Celularcini Viciosini'] = '📱',
-    ['Los Nooo My Hotspotsitos'] = '🔔',['Esok Sekolah'] = '🏠',['Los Bros'] = '✊',["Tralaledon"] = "🦈",["La Extinct Grande"] = "🦴",["Las Sis"] = "👧",["Los Chicleteiras"] = "🚳",["Celularcini Viciosini"] = "📢",["Dragon Cannelloni"] = "🐉",["La Secret Combinasion"] = "❓",["Burguro And Fryuro"] = "🍔"
+    ['Los Nooo My Hotspotsitos'] = '🔔',['Esok Sekolah'] = '🏠',['Los Bros'] = '✊',["Tralaledon"] = "🦈",["La Extinct Grande"] = "🦴",["Las Sis"] = "👧",["Los Chicleteiras"] = "🚳",["Celularcini Viciosini"] = "📢",["Dragon Cannelloni"] = "🐉",["La Secret Combinasion"] = "❓",["Burguro And Fryuro"] = "🍔",
+    ['Santa Chicleteira'] = '🎅🏿',
 }
 
 -- == ОПТИМАЛЬНЫЙ ESP ==
