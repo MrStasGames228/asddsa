@@ -184,96 +184,6 @@ local TweenService = game:GetService('TweenService')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local CoreGui = game:GetService('CoreGui')
 local UserInputService = game:GetService('UserInputService')
-local HttpService = game:GetService('HttpService')
-
--- == НОВАЯ ФУНКЦИЯ: АВТОМАТИЧЕСКИЙ ФАРМ БРЕЙНРОТОВ ==
-local autoFarmEnabled = false
-local autoFarmConnection = nil
-local lastFarmCheck = 0
-local FARM_CHECK_INTERVAL = 2 -- Проверка каждые 2 секунды
-
-local function getNearestBrainrot()
-    local character = player.Character
-    if not character then return nil end
-    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-    if not humanoidRootPart then return nil end
-    
-    local nearest = nil
-    local nearestDistance = math.huge
-    
-    for _, obj in pairs(workspace:GetDescendants()) do
-        -- Ищем брейнроты (возможные названия)
-        if (obj.Name:find("Breinrot") or obj.Name:find("Brainrot") or obj.Name:find("Ornament")) 
-           and obj:IsA("BasePart") then
-            local distance = (humanoidRootPart.Position - obj.Position).Magnitude
-            if distance < nearestDistance and distance < 50 then
-                nearestDistance = distance
-                nearest = obj
-            end
-        end
-    end
-    
-    return nearest, nearestDistance
-end
-
-local function farmBrainrots()
-    if not autoFarmEnabled then return end
-    
-    local currentTime = tick()
-    if currentTime - lastFarmCheck < FARM_CHECK_INTERVAL then return end
-    lastFarmCheck = currentTime
-    
-    local brainrot, distance = getNearestBrainrot()
-    if not brainrot then 
-        print("🔍 Брейнроты не найдены в радиусе 50 studs")
-        return 
-    end
-    
-    print("🎯 Найден брейнрот на расстоянии: " .. math.floor(distance) .. " studs")
-    
-    -- Телепортируемся к брейнроту
-    local character = player.Character
-    if character then
-        local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-        if humanoidRootPart then
-            -- Плавный телепорт (не мгновенный)
-            local tween = TweenService:Create(
-                humanoidRootPart,
-                TweenInfo.new(0.5, Enum.EasingStyle.Quad),
-                {CFrame = CFrame.new(brainrot.Position + Vector3.new(0, 3, 0))}
-            )
-            tween:Play()
-            
-            -- Имитируем взаимодействие
-            task.wait(0.6)
-            
-            -- Пытаемся активировать брейнрот (если есть необходимое взаимодействие)
-            fireproximityprompt(brainrot:FindFirstChildOfClass("ProximityPrompt"), 0)
-            
-            print("✅ Собран брейнрот: " .. brainrot.Name)
-        end
-    end
-end
-
-local function startAutoFarm()
-    if autoFarmConnection then return end
-    autoFarmEnabled = true
-    
-    autoFarmConnection = RunService.Heartbeat:Connect(function()
-        farmBrainrots()
-    end)
-    
-    print("🚀 Автофарм брейнротов ВКЛЮЧЕН!")
-end
-
-local function stopAutoFarm()
-    if autoFarmConnection then
-        autoFarmConnection:Disconnect()
-        autoFarmConnection = nil
-    end
-    autoFarmEnabled = false
-    print("⛔ Автофарм брейнротов ВЫКЛЮЧЕН!")
-end
 
 -- == ФУНКЦИЯ REMOVEPLAYERR (ПОЛНОЕ УДАЛЕНИЕ ВСЕХ ИГРОКОВ ВИЗУАЛЬНО) ==
 local removePlayerEnabled = false
@@ -530,15 +440,6 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if input.KeyCode == Enum.KeyCode.Space then
         isSpacePressed = true
     end
-    
-    -- Бинд на клавишу B для автофарма
-    if input.KeyCode == Enum.KeyCode.B then
-        if autoFarmEnabled then
-            stopAutoFarm()
-        else
-            startAutoFarm()
-        end
-    end
 end)
 
 UserInputService.InputEnded:Connect(function(input, gameProcessed)
@@ -576,15 +477,13 @@ local ICONS = {
     Zap = "rbxassetid://7733911822", 
     Eye = "rbxassetid://7733745385", 
     Camera = "rbxassetid://7733871300",
-    Jump = "rbxassetid://7733708835",
-    Farm = "rbxassetid://7733964150"  -- Новая иконка для фарма
+    Jump = "rbxassetid://7733708835"
 }
 local ESP_SETTINGS = { MaxDistance = 500, Font = Enum.Font.GothamBold, Color = Color3.fromRGB(148, 0, 211),
     BgColor = Color3.fromRGB(24, 16, 40), TxtColor = Color3.fromRGB(225, 210, 255), TextSize = 16 }
     
--- Обновленный список объектов с фильтрацией
+-- Обновленный список объектов с фильтрацией (только интерактивные)
 local OBJECT_EMOJIS = {
-    -- ТОЛЬКО интерактивные объекты (можно получить)
     ['La Vacca Saturno Saturita'] = '🐮', 
     ['Nooo My Hotspot'] = '👽', 
     ['La Supreme Combinasion'] = '🔫',
@@ -918,3 +817,774 @@ local function makeDraggable(frame)
         end
     end)
     
+    frame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - mousePos
+            frame.Position = UDim2.new(
+                framePos.X.Scale,
+                framePos.X.Offset + delta.X,
+                framePos.Y.Scale,
+                framePos.Y.Offset + delta.Y
+            )
+        end
+    end)
+end
+
+-- == UI ==
+local uiRoot, sidebar, btnESP, btnCam, btnFreeze, btnJump, btnSelect, btnPlayer, btnTroll
+local selectedPlayer = nil
+local function makeMenuButton(text, icon, isOn)
+    local btn = Instance.new("TextButton")
+    btn.Text = "   "..text
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 16
+    btn.BackgroundColor3 = isOn and UI_THEME.ButtonOn or UI_THEME.ButtonOff
+    btn.TextColor3 = UI_THEME.Text
+    btn.Size = UDim2.new(1,0,0,36)
+    btn.AutoButtonColor = true
+    Instance.new("UICorner",btn).CornerRadius = UDim.new(0,10)
+    local i = Instance.new("ImageLabel",btn)
+    i.BackgroundTransparency = 1
+    i.Image = icon
+    i.Size = UDim2.new(0,18,0,18)
+    i.Position = UDim2.new(0,7,0.5,-9)
+    i.ImageColor3 = UI_THEME.Text
+    i.AnchorPoint = Vector2.new(0,0.5)
+    return btn
+end
+local function buildUI()
+    uiRoot = Instance.new('ScreenGui',CoreGui)
+    uiRoot.Name = 'PurpleESP_UI'
+    uiRoot.ResetOnSpawn = false
+    uiRoot.IgnoreGuiInset = true
+    uiRoot.DisplayOrder = 1000
+    sidebar = Instance.new('Frame', uiRoot)
+    sidebar.Size = UDim2.new(0, 220, 0, 308)
+    sidebar.AnchorPoint = Vector2.new(1, 0.5)
+    sidebar.Position = UDim2.new(1, -12, 0.4, 0)
+    sidebar.BackgroundColor3 = UI_THEME.PanelBg
+    sidebar.Active = true
+    
+    -- ДЕЛАЕМ GUI ПЕРЕТАСКИВАЕМЫМ
+    makeDraggable(sidebar)
+    
+    Instance.new('UICorner', sidebar).CornerRadius = UDim.new(0,12)
+    local stroke = Instance.new('UIStroke',sidebar)
+    stroke.Color = UI_THEME.PanelStroke
+    stroke.Thickness = 2
+    local grad = Instance.new('UIGradient',sidebar)
+    grad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, UI_THEME.Accent2),
+        ColorSequenceKeypoint.new(0.5, UI_THEME.Accent),
+        ColorSequenceKeypoint.new(1, UI_THEME.Accent2)})
+    grad.Transparency = NumberSequence.new(0.1)
+    grad.Rotation = 35
+    grad.Offset = Vector2.new(-1.1,0)
+    TweenService:Create(grad,TweenInfo.new(2,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut,-1,true),{Offset=Vector2.new(1.1,0)}):Play()
+
+    sidebar.ClipsDescendants = true
+
+    -- Контейнер для кнопок управления
+    local windowControls = Instance.new("Frame", sidebar)
+    windowControls.Name = "WindowControls"
+    windowControls.Size = UDim2.new(0, 70, 0, 30)
+    windowControls.Position = UDim2.new(1, -75, 0, 5)
+    windowControls.BackgroundTransparency = 1
+    windowControls.ZIndex = 25
+
+    -- Кнопка Minimize (желтая)
+    local btnMin = Instance.new("TextButton", windowControls)
+    btnMin.Name = "BtnMinimize"
+    btnMin.Text = "-"
+    btnMin.Font = Enum.Font.GothamBold
+    btnMin.TextSize = 24
+    btnMin.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btnMin.BackgroundColor3 = Color3.fromRGB(255, 189, 68)
+    btnMin.Size = UDim2.new(0, 28, 0, 28)
+    btnMin.Position = UDim2.new(0, 0, 0, 1)
+    btnMin.BorderSizePixel = 0
+    btnMin.AutoButtonColor = false
+    btnMin.ZIndex = 26
+
+    Instance.new("UICorner", btnMin).CornerRadius = UDim.new(1, 0)
+
+    -- Кнопка Close (красная)
+    local btnClose = Instance.new("TextButton", windowControls)
+    btnClose.Name = "BtnClose"
+    btnClose.Text = "X"
+    btnClose.Font = Enum.Font.GothamBold
+    btnClose.TextSize = 15
+    btnClose.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btnClose.BackgroundColor3 = Color3.fromRGB(255, 95, 87)
+    btnClose.Size = UDim2.new(0, 28, 0, 28)
+    btnClose.Position = UDim2.new(0, 35, 0, 1)
+    btnClose.BorderSizePixel = 0
+    btnClose.AutoButtonColor = false
+    btnClose.ZIndex = 26
+
+    Instance.new("UICorner", btnClose).CornerRadius = UDim.new(1, 0)
+
+    -- Переменные
+    local isMinimized = false
+    local originalSidebarSize = nil
+
+    -- Hover Minimize
+    btnMin.MouseEnter:Connect(function()
+        TweenService:Create(btnMin, TweenInfo.new(0.12), {
+            BackgroundColor3 = Color3.fromRGB(255, 210, 100)
+        }):Play()
+    end)
+
+    btnMin.MouseLeave:Connect(function()
+        TweenService:Create(btnMin, TweenInfo.new(0.12), {
+            BackgroundColor3 = Color3.fromRGB(255, 189, 68)
+        }):Play()
+    end)
+
+    -- Hover Close
+    btnClose.MouseEnter:Connect(function()
+        TweenService:Create(btnClose, TweenInfo.new(0.12), {
+            BackgroundColor3 = Color3.fromRGB(255, 120, 110)
+        }):Play()
+    end)
+
+    btnClose.MouseLeave:Connect(function()
+        TweenService:Create(btnClose, TweenInfo.new(0.12), {
+            BackgroundColor3 = Color3.fromRGB(255, 95, 87)
+        }):Play()
+    end)
+
+    local buttonArea = Instance.new('Frame',sidebar)
+    buttonArea.BackgroundTransparency = 1
+    buttonArea.Position = UDim2.new(0, 10, 0, 38)
+    buttonArea.Size = UDim2.new(1, -20, 1, -52)
+    
+    local layout = Instance.new("UIListLayout",buttonArea)
+    layout.FillDirection = Enum.FillDirection.Vertical
+    layout.Padding = UDim.new(0,8)
+
+    -- === ФУНКЦИИ СВОРАЧИВАНИЯ И ЗАКРЫТИЯ ===
+
+    -- Сохраняем оригинальный размер ПОСЛЕ создания всего GUI
+    task.spawn(function()
+        task.wait(0.3)
+        originalSidebarSize = sidebar.Size
+        print("📏 Размер GUI сохранен:", originalSidebarSize)
+    end)
+
+    -- СВОРАЧИВАНИЕ (ПРОСТО СКРЫВАЕМ buttonArea)
+    btnMin.MouseButton1Click:Connect(function()
+        isMinimized = not isMinimized
+
+        if isMinimized then
+            -- Сохраняем размер
+            if not originalSidebarSize then
+                originalSidebarSize = sidebar.Size
+            end
+
+            print("🔽 СВОРАЧИВАЕМ - скрываем buttonArea...")
+
+            -- ПРОСТО СКРЫВАЕМ buttonArea
+            buttonArea.Visible = false
+
+            -- Сворачиваем sidebar до 38px
+            TweenService:Create(sidebar, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                Size = UDim2.new(0, 220, 0, 38)
+            }):Play()
+
+            btnMin.Text = "+"
+            print("✅ GUI свернут - buttonArea скрыт (Visible = false)")
+
+        else
+            print("🔼 РАЗВОРАЧИВАЕМ - показываем buttonArea...")
+
+            -- ПОКАЗЫВАЕМ buttonArea
+            buttonArea.Visible = true
+
+            -- Разворачиваем sidebar обратно
+            if originalSidebarSize then
+                TweenService:Create(sidebar, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                    Size = originalSidebarSize
+                }):Play()
+            end
+
+            btnMin.Text = "-"
+            print("✅ GUI развернут - buttonArea показан (Visible = true)")
+        end
+    end)
+
+    -- ЗАКРЫТИЕ GUI
+    btnClose.MouseButton1Click:Connect(function()
+        print("❌ Закрываем GUI...")
+
+        TweenService:Create(sidebar, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+            Size = UDim2.new(0, 0, 0, 0)
+        }):Play()
+
+        task.wait(0.25)
+
+        pcall(function()
+            if heartbeatConnection then stopESP() end
+        end)
+        pcall(function()
+            if FPSDevourer and FPSDevourer.running then FPSDevourer:Stop() end
+        end)
+        pcall(function()
+            if isCameraRaised then disableFollowCamera() end
+        end)
+
+        pcall(function() uiRoot:Destroy() end)
+        pcall(function() if esp3DRoot then esp3DRoot:Destroy() end end)
+
+        print("✅ GUI полностью удален")
+    end)
+
+    -- Создаем кнопки
+    btnFreeze = makeMenuButton("Freeze FPS", ICONS.Zap, false) btnFreeze.Name = "FreezeFPS"
+    btnESP = makeMenuButton("ESP", ICONS.Eye, true) btnESP.Name = "ESP"
+    btnCam = makeMenuButton("CameraUP (R)", ICONS.Camera, false) btnCam.Name = "CameraUP"
+    btnJump = makeMenuButton("Infinity Jump", ICONS.Jump, true) btnJump.Name = "InfinityJump"
+    btnSelect = makeMenuButton("Выбрать игрока", "", false) btnSelect.Name = "SelBtn"
+    btnPlayer = makeMenuButton("Player: None", "", false) btnPlayer.Name = "PlBtn" btnPlayer.Visible = false
+    btnTroll = makeMenuButton("Troll Player", "", false) btnTroll.Name = "TrollBtn" btnTroll.Visible = false
+    
+    -- Добавляем кнопки в интерфейс
+    btnFreeze.Parent = buttonArea
+    btnESP.Parent = buttonArea
+    btnCam.Parent = buttonArea
+    btnJump.Parent = buttonArea
+    btnSelect.Parent = buttonArea
+    btnPlayer.Parent = buttonArea
+    btnTroll.Parent = buttonArea
+    
+    -- Обработчики кнопок
+    btnESP.MouseButton1Click:Connect(function()
+        if heartbeatConnection then 
+            stopESP()
+            btnESP.BackgroundColor3 = UI_THEME.ButtonOff
+        else 
+            startESP()
+            btnESP.BackgroundColor3 = UI_THEME.ButtonOn 
+        end
+    end)
+    
+    btnFreeze.MouseButton1Click:Connect(function()
+        if FPSDevourer.running then 
+            FPSDevourer:Stop() 
+            btnFreeze.BackgroundColor3 = UI_THEME.ButtonOff
+        else 
+            FPSDevourer:Start() 
+            btnFreeze.BackgroundColor3 = UI_THEME.ButtonOn 
+        end
+    end)
+    
+    btnCam.MouseButton1Click:Connect(function()
+        if isCameraRaised then 
+            disableFollowCamera() 
+            btnCam.BackgroundColor3 = UI_THEME.ButtonOff
+        else 
+            enableFollowCamera() 
+            btnCam.BackgroundColor3 = UI_THEME.ButtonOn 
+        end
+        btnCam.Text = "   CameraUP (R)"
+    end)
+    
+    btnJump.MouseButton1Click:Connect(function()
+        btnJump.Text = "   No Animations!"
+        task.wait(1)
+        btnJump.Text = "   Infinity Jump"
+    end)
+    
+    btnSelect.MouseButton1Click:Connect(function()
+        local popup = Instance.new("Frame",uiRoot)
+        popup.BackgroundColor3 = UI_THEME.PanelBg
+        popup.Size = UDim2.new(0, 220, 0, 190)
+        popup.Position = UDim2.new(0, 250, 0.5, -95)
+        popup.AnchorPoint = Vector2.new(0,0)
+        
+        -- ДЕЛАЕМ ПОПАП ПЕРЕТАСКИВАЕМЫМ
+        makeDraggable(popup)
+        
+        Instance.new("UICorner", popup).CornerRadius = UDim.new(0,9)
+        local border = Instance.new("UIStroke", popup)
+        border.Color = UI_THEME.PanelStroke
+        border.Thickness = 2
+        local header = Instance.new("TextLabel", popup)
+        header.BackgroundTransparency = 1
+        header.Text = "Список игроков"
+        header.Font = Enum.Font.GothamBold
+        header.TextSize = 16
+        header.TextColor3 = UI_THEME.Text
+        header.Size = UDim2.new(1, -28, 0, 28)
+        header.Position = UDim2.new(0,12,0,0)
+        header.TextXAlignment = Enum.TextXAlignment.Left
+        local close = Instance.new("TextButton", popup)
+        close.Text = "✕"
+        close.Font = Enum.Font.GothamBlack
+        close.TextSize = 17
+        close.Size = UDim2.new(0,26,0,26)
+        close.Position = UDim2.new(1, -30, 0, 2)
+        close.BackgroundTransparency = 1
+        close.TextColor3 = UI_THEME.Accent
+        close.AutoButtonColor = true
+        close.MouseButton1Click:Connect(function() popup:Destroy() end)
+        local scroll = Instance.new("ScrollingFrame", popup)
+        scroll.BackgroundTransparency = 1
+        scroll.Size = UDim2.new(1, -18, 1, -34)
+        scroll.Position = UDim2.new(0,9,0,32)
+        scroll.CanvasSize = UDim2.new(0,0,0,0)
+        scroll.ScrollBarThickness = 6
+        scroll.BottomImage,scroll.TopImage,scroll.MidImage = "","",""
+        scroll.BorderSizePixel = 0
+        local layout = Instance.new("UIListLayout", scroll)
+        layout.SortOrder = Enum.SortOrder.LayoutOrder
+        layout.Padding = UDim.new(0,3)
+        for _,plr in ipairs(Players:GetPlayers()) do
+            local f = Instance.new("Frame",scroll)
+            f.BackgroundColor3 = Color3.fromRGB(48,36,72)
+            f.Size = UDim2.new(1,0,0,32)
+            Instance.new("UICorner",f).CornerRadius=UDim.new(0,6)
+            local lbl = Instance.new("TextLabel",f)
+            lbl.BackgroundTransparency = 1 lbl.Size = UDim2.new(0.66,0,1,0)
+            lbl.Position = UDim2.new(0,10,0,0)
+            lbl.Text = plr.DisplayName ~= plr.Name and (plr.DisplayName.." ("..plr.Name..")") or plr.Name
+            lbl.Font = Enum.Font.Gotham lbl.TextSize = 15
+            lbl.TextColor3 = UI_THEME.Text lbl.TextXAlignment=Enum.TextXAlignment.Left
+            local sel = Instance.new("TextButton",f)
+            sel.Text = "Выбрать"
+            sel.Font = Enum.Font.GothamBold
+            sel.TextSize = 13
+            sel.Size = UDim2.new(0.266,0,0.7,0)
+            sel.Position = UDim2.new(0.71,0,0.16,0)
+            sel.BackgroundColor3 = UI_THEME.Accent
+            sel.TextColor3 = Color3.new(1,1,1)
+            sel.AutoButtonColor = true
+            Instance.new("UICorner",sel).CornerRadius = UDim.new(0,3)
+            sel.MouseButton1Click:Connect(function()
+                selectedPlayer = plr
+                btnPlayer.Text = "Player: "..plr.Name
+                btnPlayer.Visible = true
+                btnTroll.Visible = true
+                btnSelect.Visible = false
+                popup:Destroy()
+            end)
+        end
+        task.wait()
+        scroll.CanvasSize = UDim2.new(0,0,0,layout.AbsoluteContentSize.Y)
+    end)
+    
+    btnPlayer.MouseButton1Click:Connect(function()
+        btnSelect.Visible = true
+        btnPlayer.Visible = false
+        btnTroll.Visible = false
+    end)
+    
+    btnTroll.MouseButton1Click:Connect(function()
+        if not selectedPlayer then return end
+        local Event = ReplicatedStorage.Packages.Net["RE/AdminPanelService/ExecuteCommand"]
+        local plr = selectedPlayer
+        Event:FireServer(plr, "ragdoll")
+        task.spawn(function()
+            task.wait(4)
+            Event:FireServer(plr, "jail")
+            task.wait(9.5)
+            Event:FireServer(plr, "inverse")
+            task.wait(9)
+            Event:FireServer(plr, "rocket")
+            task.wait(3)
+            Event:FireServer(plr, "jumpscare")
+        end)
+    end)
+end
+
+if not CoreGui:FindFirstChild('PurpleESP_3D') then
+    esp3DRoot = Instance.new('ScreenGui')
+    esp3DRoot.Name = 'PurpleESP_3D'
+    esp3DRoot.Parent = CoreGui
+    esp3DRoot.ResetOnSpawn = false
+else
+    esp3DRoot = CoreGui:FindFirstChild('PurpleESP_3D')
+end
+
+buildUI()
+startESP()
+
+-- == Camera toggle on R ==
+UserInputService.InputBegan:Connect(function(input,gp)
+    if gp then return end
+    if input.KeyCode==Enum.KeyCode.R then
+        if isCameraRaised then 
+            disableFollowCamera() 
+            btnCam.BackgroundColor3=UI_THEME.ButtonOff
+        else 
+            enableFollowCamera() 
+            btnCam.BackgroundColor3=UI_THEME.ButtonOn 
+        end
+        btnCam.Text = "   CameraUP (R)"
+    end
+end)
+
+-- == Удаление игроков на G ==
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+
+    if input.KeyCode == Enum.KeyCode.G then
+        if removePlayerEnabled then
+            stopRemovePlayers()
+        else
+            startRemovePlayers()
+        end
+    end
+end)
+
+-- == Быстрый выбор инструментов (Z/X) ==
+local function equipToolByName(toolName)
+    local char = player.Character
+    local backpack = player:FindFirstChild("Backpack")
+    if not (char and backpack) then return end
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    if not humanoid then return end
+    humanoid:UnequipTools()
+    local tool = backpack:FindFirstChild(toolName)
+    if tool and tool:IsA("Tool") then
+        humanoid:EquipTool(tool)
+    end
+end
+UserInputService.InputBegan:Connect(function(input, gp)
+    if gp then return end
+    if input.KeyCode == Enum.KeyCode.Z then
+        equipToolByName("Invisibility Cloak")
+    elseif input.KeyCode == Enum.KeyCode.X then
+        equipToolByName("Quantum Cloner")
+    end
+end)
+
+-- == INPUT TELEPORT BY JOBID (Key T) ==
+local okTG, TeleportService = pcall(function() return game:GetService("TeleportService") end)
+local LocalPlayer = player
+local USE_TELEPORT_ASYNC = false
+local ATTEMPT_INTERVAL = 1.5
+local UUID_PATTERN = "^[%x][%x][%x][%x][%x][%x][%x][%x]%-[%x][%x][%x][%x]%-[%x][%x][%x][%x]%-[%x][%x][%x][%x]%-[%x][%x][%x][%x][%x][%x][%x][%x][%x][%x][%x][%x]$"
+local function parsePlaceAndJob(input)
+    if type(input) ~= "string" then return nil, nil, "Пустой ввод" end
+    local s = input:gsub("^%s+", ""):gsub("%s+$", "")
+    local placeStr, jobStr = s:match("TeleportToPlaceInstance%s*%(%s*(%d+)%s*,%s*['\"]([%w%-]+)['\"]")
+    if placeStr and jobStr then
+        local placeId = tonumber(placeStr)
+        if not placeId then return nil, nil, "Некорректный placeId" end
+        if not jobStr:match(UUID_PATTERN) then return nil, nil, "Некорректный JobId" end
+        return placeId, jobStr, nil
+    end
+    if s:match(UUID_PATTERN) then
+        return tonumber(game.PlaceId), s, nil
+    end
+    local p2, j2 = s:match("^(%d+)%s*[|,;%s]%s*([%w%-]+)$")
+    if p2 and j2 and j2:match(UUID_PATTERN) then
+        return tonumber(p2), j2, nil
+    end
+    return nil, nil, "Неверный ввод (ожидается JobId или placeId, JobId)"
+end
+local function teleportOnce(placeId, jobId)
+    if not okTG or not TeleportService then
+        return false, "TeleportService недоступен"
+    end
+    local ok, err = pcall(function()
+        if USE_TELEPORT_ASYNC then
+            local TeleportOptions = Instance.new("TeleportOptions")
+            TeleportOptions.ServerInstanceId = jobId
+            TeleportService:TeleportAsync(placeId, {LocalPlayer}, TeleportOptions)
+        else
+            TeleportService:TeleportToPlaceInstance(placeId, jobId, LocalPlayer)
+        end
+    end)
+    if ok then
+        return true, nil
+    else
+        return false, tostring(err)
+    end
+end
+local lastTeleportStatus = ""
+local function setStatus(lbl, txt)
+    lastTeleportStatus = txt or ""
+    if lbl then lbl.Text = txt or "" end
+end
+if okTG and TeleportService then
+    TeleportService.TeleportInitFailed:Connect(function(plr, result, msg, placeId, teleOpts)
+        if plr == LocalPlayer then
+            lastTeleportStatus = ("TeleportInitFailed: %s"):format(tostring(result))
+        end
+    end)
+end
+local function safeCreatePrompt()
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "JobIdTeleportPrompt"
+    gui.ResetOnSpawn = false
+    gui.Parent = CoreGui
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 480, 0, 182)
+    frame.AnchorPoint = Vector2.new(0.5, 0.5)
+    frame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    frame.BackgroundColor3 = UI_THEME.PanelBg
+    frame.Active = true
+    frame.ClipsDescendants = true
+    frame.Parent = gui
+    
+    -- ДЕЛАЕМ ОКНО ТЕЛЕПОРТА ПЕРЕТАСКИВАЕМЫМ
+    makeDraggable(frame)
+    
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
+    local stroke = Instance.new("UIStroke", frame)
+    stroke.Color = UI_THEME.PanelStroke
+    stroke.Thickness = 2
+    local header = Instance.new("TextLabel")
+    header.Name = "Header"
+    header.BackgroundTransparency = 1
+    header.Text = "Введите ID"
+    header.Font = Enum.Font.GothamBold
+    header.TextSize = 18
+    header.TextColor3 = UI_THEME.Text
+    header.TextXAlignment = Enum.TextXAlignment.Left
+    header.Size = UDim2.new(1, -36, 0, 28)
+    header.Position = UDim2.new(0, 12, 0, 10)
+    header.Parent = frame
+    local close = Instance.new("TextButton")
+    close.Text = "✕"
+    close.Font = Enum.Font.GothamBlack
+    close.TextSize = 18
+    close.Size = UDim2.new(0, 26, 0, 26)
+    close.Position = UDim2.new(1, -30, 0, 8)
+    close.BackgroundTransparency = 1
+    close.TextColor3 = UI_THEME.Accent
+    close.Parent = frame
+    close.MouseButton1Click:Connect(function() gui:Destroy() end)
+    local inputRow = Instance.new("Frame")
+    inputRow.BackgroundTransparency = 1
+    inputRow.Size = UDim2.new(1, -24, 0, 36)
+    inputRow.AnchorPoint = Vector2.new(0.5, 0.5)
+    inputRow.Position = UDim2.new(0.5, 0, 0.5, -8)
+    inputRow.Parent = frame
+    local box = Instance.new("TextBox")
+    box.Font = Enum.Font.Gotham
+    box.PlaceholderText = "Примеры: 123456|job-uuid ... или просто job-uuid"
+    box.Text = ""
+    box.TextSize = 14
+    box.TextColor3 = UI_THEME.Text
+    box.BackgroundColor3 = Color3.fromRGB(30, 22, 46)
+    box.Size = UDim2.new(1, -150, 0, 32)
+    box.AnchorPoint = Vector2.new(0, 0.5)
+    box.Position = UDim2.new(0, 12, 0.5, 0)
+    box.ClearTextOnFocus = false
+    box.Parent = inputRow
+    Instance.new("UICorner", box).CornerRadius = UDim.new(0, 8)
+    local boxStroke = Instance.new("UIStroke", box)
+    boxStroke.Color = UI_THEME.Accent2
+    boxStroke.Thickness = 1
+    local status = Instance.new("TextLabel")
+    status.BackgroundTransparency = 1
+    status.Text = ""
+    status.Font = Enum.Font.Gotham
+    status.TextSize = 13
+    status.TextColor3 = Color3.fromRGB(255, 200, 200)
+    status.TextXAlignment = Enum.TextXAlignment.Left
+    status.Size = UDim2.new(1, -24, 0, 20)
+    status.Position = UDim2.new(0, 12, 1, -52)
+    status.Parent = frame
+    local go = Instance.new("TextButton")
+    go.Text = "Teleport"
+    go.Font = Enum.Font.GothamBold
+    go.TextSize = 15
+    go.TextColor3 = Color3.new(1,1,1)
+    go.BackgroundColor3 = UI_THEME.Accent
+    go.Size = UDim2.new(0, 110, 0, 30)
+    go.AnchorPoint = Vector2.new(1, 1)
+    go.Position = UDim2.new(1, -12, 1, -10)
+    Instance.new("UICorner", go).CornerRadius = UDim.new(0, 8)
+    go.Parent = frame
+    local auto = Instance.new("TextButton")
+    auto.Text = "AutoTeleport: OFF"
+    auto.Font = Enum.Font.GothamBold
+    auto.TextSize = 14
+    auto.TextColor3 = UI_THEME.Text
+    auto.BackgroundColor3 = UI_THEME.ButtonOff
+    auto.Size = UDim2.new(0, 140, 0, 30)
+    auto.AnchorPoint = Vector2.new(1, 1)
+    auto.Position = UDim2.new(1, -134, 1, -10)
+    Instance.new("UICorner", auto).CornerRadius = UDim.new(0, 8)
+    auto.Parent = frame
+    local busy = false
+    local autoOn = false
+    local autoThread = nil
+    local function parseNow()
+        local placeId, jobId, err = parsePlaceAndJob(box.Text)
+        if err then
+            setStatus(status, "Ошибка: "..err)
+            return nil, nil
+        end
+        return placeId, jobId
+    end
+    local function doTeleport()
+        if busy then
+            setStatus(status, "Идёт попытка...")
+            return
+        end
+        local placeId, jobId = parseNow()
+        if not placeId or not jobId then return end
+        busy = true
+        setStatus(status, ("Телепорт в %d | %s ..."):format(placeId, jobId))
+        local ok, err = teleportOnce(placeId, jobId)
+        if ok then
+            setStatus(status, "Телепорт вызван, ждём загрузки...")
+        else
+            setStatus(status, "Не удалось: "..tostring(err))
+        end
+        busy = false
+    end
+    go.MouseButton1Click:Connect(doTeleport)
+    box.FocusLost:Connect(function(enter) if enter then doTeleport() end end)
+    local function startAuto()
+        if autoOn then return end
+        autoOn = true
+        auto.Text = "AutoTeleport: ON"
+        auto.BackgroundColor3 = UI_THEME.ButtonOn
+        setStatus(status, "Автотелепорт включён")
+        autoThread = task.spawn(function()
+            while autoOn do
+                local placeId, jobId = parseNow()
+                if placeId and jobId then
+                    if not busy then
+                        busy = true
+                        local ok, err = teleportOnce(placeId, jobId)
+                        if ok then
+                            setStatus(status, "Авто: вызван телепорт...")
+                        else
+                            setStatus(status, "Авто: ошибка — "..tostring(err))
+                        end
+                        busy = false
+                    end
+                end
+                local t0 = tick()
+                while tick() - t0 < ATTEMPT_INTERVAL do
+                    if not autoOn then break end
+                    RunService.Heartbeat:Wait()
+                end
+            end
+        end)
+    end
+    local function stopAuto()
+        autoOn = false
+        auto.Text = "AutoTeleport: OFF"
+        auto.BackgroundColor3 = UI_THEME.ButtonOff
+        setStatus(status, "Автотелепорт выключен")
+        autoThread = nil
+    end
+    auto.MouseButton1Click:Connect(function()
+        if autoOn then stopAuto() else startAuto() end
+    end)
+    return gui
+end
+UserInputService.InputBegan:Connect(function(input, gp)
+    if gp then return end
+    if input.KeyCode == Enum.KeyCode.T then
+        local existing = CoreGui:FindFirstChild("JobIdTeleportPrompt")
+        if existing then
+            existing.Enabled = not existing.Enabled
+        else
+            local okP, guiOrErr = pcall(function() return safeCreatePrompt() end)
+            if not okP then
+                warn("[TeleportPrompt] "..tostring(guiOrErr))
+            end
+        end
+    end
+end)
+
+print("🚀 Исправленный скрипт загружен!")
+print("✅ HTTP блокировщик активен")
+print("✅ INFINITY JUMP: всегда включен, быстрое падение!")
+print("   - Зажимайте ПРОБЕЛ для прыжка вверх (скорость 32)")
+print("   - Отпускайте ПРОБЕЛ для БЫСТРОГО падения (скорость -80)")
+print("   - ВСЕ АНИМАЦИИ ПОЛНОСТЬЮ ОТКЛЮЧЕНЫ!")
+print("✅ ИСПРАВЛЕННЫЙ ESP: НЕ показывает брейнроты и декорации")
+print("✅ Camera, Freeze, Troll - всё работает")
+print("✅ Телепорт по JobID: клавиша T")
+print("✅ Быстрый выбор инструментов: Z/X")
+print("✅ GUI теперь можно перетаскивать!")
+print("✅ Удаление игроков: клавиша G")
+
+-- == Визуальное улучшение RemainingTime ==
+local highlightedObjects = {}
+
+local function createBeautifulPurpleRemainingTime()
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj.Name == "RemainingTime" and obj.Parent and obj.Parent:IsA("BillboardGui") then
+            local billboardGui = obj.Parent
+            local remainingTimeLabel = obj
+            
+            if not highlightedObjects[billboardGui] then
+                billboardGui.MaxDistance = math.huge
+                billboardGui.AlwaysOnTop = true
+                billboardGui.Size = UDim2.new(12, 0, 6, 0)
+                billboardGui.StudsOffset = Vector3.new(0, 3, 0)
+                billboardGui.LightInfluence = 0
+                
+                if remainingTimeLabel:IsA("TextLabel") then
+                    remainingTimeLabel.Size = UDim2.new(1, 0, 1, 0)
+                    remainingTimeLabel.BackgroundTransparency = 1
+                    remainingTimeLabel.TextScaled = true
+                    remainingTimeLabel.RichText = true
+                    remainingTimeLabel.Font = Enum.Font.GothamBold
+                    
+                    remainingTimeLabel.TextColor3 = Color3.new(0.8, 0.4, 1)
+                    remainingTimeLabel.TextStrokeTransparency = 0
+                    remainingTimeLabel.TextStrokeColor3 = Color3.new(0.3, 0, 0.6)
+                    
+                    local constraint = remainingTimeLabel:FindFirstChild("UITextSizeConstraint")
+                    if constraint then
+                        constraint:Destroy()
+                    end
+                    
+                    local newConstraint = Instance.new("UITextSizeConstraint")
+                    newConstraint.MaxTextSize = 600
+                    newConstraint.MinTextSize = 250
+                    newConstraint.Parent = remainingTimeLabel
+                    
+                    local gradient = Instance.new("UIGradient")
+                    gradient.Color = ColorSequence.new{
+                        ColorSequenceKeypoint.new(0, Color3.new(1, 0.5, 1)),
+                        ColorSequenceKeypoint.new(0.5, Color3.new(0.8, 0.3, 1)),
+                        ColorSequenceKeypoint.new(1, Color3.new(0.5, 0, 0.8))
+                    }
+                    gradient.Rotation = 90
+                    gradient.Parent = remainingTimeLabel
+                end
+                
+                local highlight = Instance.new("Highlight")
+                highlight.Name = "RemainingTimeHighlight"
+                highlight.FillColor = Color3.new(0.7, 0.2, 1)
+                highlight.FillTransparency = 0.4
+                highlight.OutlineColor = Color3.new(1, 0.8, 1)
+                highlight.OutlineTransparency = 0
+                highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                highlight.Adornee = billboardGui
+                highlight.Parent = billboardGui
+                
+                highlightedObjects[billboardGui] = true
+                print("Создан красивый фиолетовый RemainingTime:", billboardGui:GetFullName())
+            end
+        end
+    end
+end
+
+createBeautifulPurpleRemainingTime()
+
+workspace.DescendantAdded:Connect(function(descendant)
+    if descendant.Name == "RemainingTime" then
+        wait(0.2)
+        createBeautifulPurpleRemainingTime()
+    end
+end)
